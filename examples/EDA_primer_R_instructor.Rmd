@@ -1,34 +1,42 @@
 ---
 title: "EDA_primer_instructor"
 date: "02/27/2019"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
 ---
+
+```{r, echo=FALSE, out.width="75%", out.height="75%", fig.align='center'}
+knitr::include_graphics("Monet Logo-12-06-24_cropped_dpi600.png")
+```
 
 \pagebreak
 
 > **Learning Outcomes**
 > 
-> * Download, organize, modify data files using Linux utilities
-> * Use RStudio and R Notebooks to write & execute R programs
-> * Implement file input/output, control statement, and custom functions in R
-> * Import and use external R packages
+> * Use RStudio and R Notebooks to write & execute R code
 > * Manipulate data and make multiple types of plots
 
 
 -----
 
 > 1. The R ecosystem: R | RStudio | R Notebooks | R Packages
-> 2. File/data input/output using **readr**
-> 3. Data cleaning using **tidyr**
+> 2. File/data input/output
+> 3. Data cleaning
 
 ## Some useful functions in this primer
-###Reading & writing text files with readr
+
+### Reading & writing text files with readr
 `read_csv`, `write_csv`
 `read_tsv`, `write_tsv`
 `read_delim`, `write_delim`
-###Wrangling data with dplyr
+
+### Wrangling data with dplyr
 `filter`, `select`, `distinct`, `arrange`, `rename`, `mutate`, `transmute`
-###Tidying data with tidyr
+
+### Tidying data with tidyr
 `gather`, `spread`, `separate`, `unite`
 
 
@@ -54,16 +62,16 @@ ncol(gse69360)
 ## An example of some exploratory data analysis using filter and select
 
 ```{r}
-# keep only the y chromosome
+# keep only chromosome 1
 gse69360 %>%
-    filter(grepl("chrY", Chr))
+    filter(grepl("chr1", Chr))
 # keep genes that have a length <= 50
 gse69360 %>%
     filter(Length <= 50)
-# keep genes that statisfy both of the conditions above
+# keep genes that satisfy both of the conditions above
 gse69360 %>%
-    filter(Length <= 50 & grepl("chrY", Chr))
-# keep columns Geneid and any column the has the characters "F_"    
+    filter(Length <= 50 & grepl("chr1", Chr))
+# keep columns Geneid and any column the has the characters "F_"
 gse69360 %>%
     select(Geneid, matches("F_"))
 # drop columns, Chr, Start, End, Strand, Length
@@ -78,16 +86,13 @@ Exercise
 ```{r}
 # keep Geneid, Chr, Length and all column that start have first letter of B thru F and
 # a second letter of F followed by an underscore
-# keep only rows with chrY in Chr OR have a length less than or equal to 100
-
+# keep only rows with chr1 in Chr OR have a length less than or equal to 100
 
 gsenew <- gse69360 %>%
     select(Geneid, Chr, Length, matches("[BF]F_")) %>%
-    filter(grepl("chrY", Chr) | Length <= 100)
+    filter(grepl("chr1", Chr) | Length <= 100)
 gsenew
 ```
-
-
 
 ## EDA with mutate, distinct arrange
 
@@ -120,20 +125,22 @@ gse69360 %>%
 
 ```
 
-Exercise
-helpful functions; rowSums and colnames
+### Exercise
+
+helpful functions; `rowSums` and `colnames`
+
 ```{r}
 # Make a new column that is the total expression for each gene across all samples per sample
-# drop all columns execpt Geneid and total expression column
+# drop all columns except Geneid and total expression column
 # Then sort the table based on the total expression, with highest expressed genes on top
 
-gse69360 %>% 
+gse69360 %>%
   mutate(TotalExp = rowSums(.[7:25]) / (25-7)) %>%
   select(Geneid,TotalExp) %>%
   arrange(desc(TotalExp))
 ```
 
-###Tidying data with tidyr
+### Tidying data with tidyr
 
 Dataset details:
 
@@ -168,7 +175,7 @@ gse69360 %>%
     separate(Source_Stage, into=c("Source", "Stage"), sep=1)
 
 # Make new column that has the Stage and tissue united
-# Defualt is underscore 
+# Defualt is underscore
 gse69360 %>%
     select(Geneid, matches("[AF]_")) %>%
     gather(-Geneid, key="Sample", value="Counts") %>%
@@ -177,9 +184,10 @@ gse69360 %>%
     unite(Stage_Tissue, Stage, Tissue)
 ```
 
-Exercise
+### Exercise
 
 What we want to do is to get the data ready for plotting. This means that we want to do the following to the data
+
 1. Get the logcpm of the counts (won't be ever using the Chr, Start, End, Strand, Length columns from here on out so just drop them)
 2. Put it in tidy form (i.e. gather into sample and counts columns, we won't care about anything but the samples and geneid so drop the rest)
 3. Split sample into source, stage, and tissue columns
@@ -193,7 +201,7 @@ gene_counts <- gse69360 %>%
     mutate(Geneid = gsub("\\.[0-9]*$", "", Geneid))           # in GeneID column get rid of the period and everything after it
 
 head(gene_counts,n=20)
-    
+
 logcpm <- gene_counts %>%
     select(-Geneid) %>%
     mutate_all(function(x) { log2((x*(1e+6)/sum(x)) + 1) } )  # convert counts in each sample to counts-per-million
@@ -216,8 +224,7 @@ gene_logcpm <- gene_counts %>%                                # a new dataframe 
 head(gene_logcpm,n=20)
 ```
 
-#Plotting the distribution of gene-expressions
-
+# Plotting the distribution of gene-expressions
 
 In the first plot when can plot a scatter plot comparing the expression between to samples
 
@@ -232,9 +239,9 @@ gene_logcpm %>%
     theme_minimal()
 ```
 
-Exercise
+### Exercise
 
-Make a boxplot plot of the expression values for every sample. Differenitate in the plot between both 
+Make a boxplot plot of the expression values for every sample. Differenitate in the plot between both
 the different types of tissues and the different stages
 
 ```{r}
@@ -257,7 +264,7 @@ head(gse69360)
 gene_loc <- gse69360 %>%
     select(-matches("[AF]_")) %>%
     mutate(Geneid = gsub("\\.[0-9]*$", "", Geneid)) %>%
-    mutate(Chr = gsub(";.*$", "", gse69360$Chr)) %>%   # a gene should all be on the same chromosme 
+    mutate(Chr = gsub(";.*$", "", gse69360$Chr)) %>%   # a gene should all be on the same chromosme
     mutate(Start = as.numeric(gsub(";.*$", "", gse69360$Start))) %>% # I think these are the different entrons, just look at the first
     mutate(End = as.numeric(gsub(";.*$", "", gse69360$End))) %>%
     mutate(Strand = gsub(";.*$", "", gse69360$Strand)) # I'm not sure what Strand means
@@ -274,26 +281,27 @@ gene_loc$Chr <- factor(gene_loc$Chr,
 head(gene_loc,n=20)
 ```
 
-
 Make a bar plot of the number of genes in each chromosome
+
 ```{r}
 gene_loc %>%
     ggplot(aes(x = Chr)) +
-    geom_bar() + 
+    geom_bar() +
     coord_flip() +
-    theme_minimal() + 
+    theme_minimal() +
     labs(title = "No. genes per chromosome",
          x = "Chromosome",
          y = "No. of genes")
 ```
 
 
-Excerise 
+## Excerise
 
-Make a histogram plot hwere there is a histogram for each chomosome
+Make a histogram plot hwere there is a histogram for each chromosome
 that shows the number of genes as a function of the gene length
 
-Help: May want to use facet_wrap and put the x-axis in log10 scale
+**Help** May want to use facet_wrap and put the x-axis in log10 scale
+
 ```{r}
 gene_loc %>%
     ggplot(aes(x = Length, fill = Chr)) +
@@ -307,8 +315,8 @@ gene_loc %>%
 ```
 
 
-The last thing we will look at is plotting gene with high varience in expression across the samples.
-The first thing to do is to detrmine which gene have high varience
+The last thing we will look at is plotting gene with high variance in expression across the samples.
+The first thing to do is to determine which gene have high variance
 
 ```{r}
 # Find the total number of genes
@@ -328,11 +336,13 @@ length(highvar_genes)
 
 ```
 
-#Plotting expression of high-var Y chr genes across samples
+# Plotting expression of high-var chr1 genes across samples
+
 This will shower more readily which samples are different from each other
+
 ```{r}
 chry_highvar_genes <- gene_loc %>%
-    filter(Chr == "chrY" & Geneid %in% highvar_genes) %>%
+    filter(Chr == "chr1" & Geneid %in% highvar_genes) %>%
     pull(Geneid)
 
 plot_chry_highvar_boxplot <- gene_logcpm %>%
