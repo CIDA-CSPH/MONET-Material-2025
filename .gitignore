@@ -47,3 +47,8 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Added by Chris
+*.DS_Store
+*.ipynb_checkpoints
+*.virtual_documents
