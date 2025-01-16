@@ -9,7 +9,7 @@ output:
 ---
 
 ```{r, echo=FALSE, out.width="75%", out.height="75%", fig.align='center'}
-knitr::include_graphics("Monet Logo-12-06-24_cropped_dpi600.png")
+knitr::include_graphics("Monet_Logo-12-06-24_cropped_dpi600.png")
 ```
 
 \pagebreak
